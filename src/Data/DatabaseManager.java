@@ -1,135 +1,317 @@
 package Data;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
+import Application.Notification.EmailData;
 import Application.Notification.Notification;
 import Base.Person;
 import Base.Resident;
 import Base.Staff;
 import Business.Task;
+import Business.TimeTrack;
 
 public class DatabaseManager {
-    enum Database {
-        USERS, TASKS, NOTIFICATIONS
-    }
 
-    private ArrayList<Person> userDatabase = new ArrayList<>();
-    private ArrayList<Task> taskDatabase = new ArrayList<>();
-    private ArrayList<Notification> notificationDatabase = new ArrayList<>();
-
-    private static final String USER_FILE = "users.dat";
-    private static final String TASK_FILE = "tasks.dat";
-    private static final String NOTIFICATION_FILE = "notifications.dat";
+    private Connection connection;
 
     public DatabaseManager() {
-        LoadDatabase();
+        connect();
+        initSchema();
+        seedDefaultUsers();
+    }
 
-        if (userDatabase.isEmpty()) {
-            System.out.println("No users found. Creating default users...");
-            userDatabase.add(new Resident("Orville Daley", "odspam23@gmail.com", "620164974", "password123", "I1234"));
+    private void initSchema() {
+        String sql = "CREATE TABLE IF NOT EXISTS appointments (" +
+                "id SERIAL PRIMARY KEY," +
+                "username VARCHAR(100) REFERENCES users(username)," +
+                "appt_date DATE NOT NULL," +
+                "time_slot VARCHAR(50) NOT NULL," +
+                "location VARCHAR(50) NOT NULL DEFAULT ''," +
+                "machine_no VARCHAR(20) NOT NULL," +
+                "created_at TIMESTAMP NOT NULL DEFAULT NOW()" +
+                ")";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
-            userDatabase.add(new Staff("Admin", "gahfacilities@gmail.com", "admin", "admin"));
-
-            saveDatabase(USER_FILE, userDatabase);
+    private void connect() {
+        Properties props = new Properties();
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream("db.properties")) {
+            if (in == null) {
+                throw new RuntimeException("db.properties not found on classpath");
+            }
+            props.load(in);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to load db.properties", e);
         }
 
+        String url = props.getProperty("db.url");
+        String user = props.getProperty("db.user");
+        String password = props.getProperty("db.password");
+
+        try {
+            connection = DriverManager.getConnection(url, user, password);
+            System.out.println("Connected to PostgreSQL.");
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to connect to database: " + e.getMessage(), e);
+        }
     }
 
-    public void LoadDatabase() {
-        System.out.println("Loading databases...");
-        userDatabase = loadDatabase(USER_FILE, new ArrayList<Person>());
-        taskDatabase = loadDatabase(TASK_FILE, new ArrayList<Task>());
-        notificationDatabase = loadDatabase(NOTIFICATION_FILE, new ArrayList<Notification>());
-
+    private void seedDefaultUsers() {
+        if (getUsers().isEmpty()) {
+            System.out.println("No users found. Creating default users...");
+            addItem(new Resident("Orville Daley", "odspam23@gmail.com", "620164974", "password123", "I1234"));
+            addItem(new Staff("Admin", "gahfacilities@gmail.com", "admin", "admin"));
+        }
     }
+
+    // ── Users ────────────────────────────────────────────────────────────────
 
     public void addItem(Person person) {
-        userDatabase.add(person);
-        saveDatabase(USER_FILE, userDatabase);
-    }
-
-    public void addItem(Task task) {
-        taskDatabase.add(task);
-        saveDatabase(TASK_FILE, taskDatabase);
-    }
-
-    public void addItem(Notification notification) {
-        notificationDatabase.add(notification);
-        saveDatabase(NOTIFICATION_FILE, notificationDatabase);
-    }
-
-    public void reloadTasks(ArrayList<Task> tasks) {
-        taskDatabase = tasks;
-        saveDatabase(TASK_FILE, taskDatabase);
-
+        String sql = "INSERT INTO users (username, name, email, password, role, room_number) " +
+                "VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (username) DO NOTHING";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, person.getUsername());
+            ps.setString(2, person.getName());
+            ps.setString(3, person.getEmail());
+            ps.setString(4, person.getPassword());
+            ps.setString(5, person.getRole());
+            ps.setString(6, person instanceof Resident ? ((Resident) person).getRoomNumber() : null);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public void UpdateUser(Person person) {
-        for (Person user : userDatabase) {
-            if (user.getUsername().equals(person.getUsername())) {
-                userDatabase.remove(user);
-                userDatabase.add(person);
-                saveDatabase(USER_FILE, userDatabase);
-                break;
-            }
-        }
-    }
-
-    public Object getItem(Database database, int id) {
-        ArrayList<?> dataPoints;
-        if (database == Database.USERS) {
-            dataPoints = userDatabase;
-        } else if (database == Database.TASKS) {
-            dataPoints = taskDatabase;
-        } else {
-            dataPoints = notificationDatabase;
-        }
-
-        for (Object datum : dataPoints) {
-            if (datum.hashCode() == id)
-                return datum;
-        }
-        return null;
-    }
-
-    // Generic method to save a database to a .dat file
-    private <T> void saveDatabase(String fileName, ArrayList<T> database) {
-        // Create the file if it does not exist
-        try {
-            new FileOutputStream(fileName, false).close();
-        } catch (IOException e) {
+        String sql = "UPDATE users SET password = ?, email = ? WHERE username = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, person.getPassword());
+            ps.setString(2, person.getEmail());
+            ps.setString(3, person.getUsername());
+            ps.executeUpdate();
+        } catch (SQLException e) {
             e.printStackTrace();
-        }
-
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {
-            oos.writeObject(database);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Generic method to load a database from a .dat file
-    @SuppressWarnings("unchecked")
-    private <T> ArrayList<T> loadDatabase(String fileName, ArrayList<T> defaultDatabase) {
-        // Read the database from the file if it exists
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName))) {
-            return (ArrayList<T>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            // If the file does not exist, return the default database
-            return defaultDatabase;
         }
     }
 
     public ArrayList<Person> getUsers() {
-        return userDatabase;
+        ArrayList<Person> users = new ArrayList<>();
+        String sql = "SELECT * FROM users";
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                String role = rs.getString("role");
+                Person p;
+                if ("resident".equals(role)) {
+                    p = new Resident(
+                            rs.getString("name"),
+                            rs.getString("email"),
+                            rs.getString("username"),
+                            rs.getString("password"),
+                            rs.getString("room_number"));
+                } else {
+                    p = new Staff(
+                            rs.getString("name"),
+                            rs.getString("email"),
+                            rs.getString("username"),
+                            rs.getString("password"));
+                }
+                users.add(p);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return users;
+    }
+
+    // ── Tasks ────────────────────────────────────────────────────────────────
+
+    public void addItem(Task task) {
+        String sql = "INSERT INTO tasks (task_name, description, category, room_num, priority, status, " +
+                "complete, reporter, assignee, created_at, completed_at) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING task_id";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, task.getTask_name());
+            ps.setString(2, task.getTask_Description());
+            ps.setString(3, task.getTask_Category());
+            ps.setString(4, task.getRoomNum());
+            ps.setInt(5, task.getTask_Priority());
+            ps.setString(6, task.getStatus());
+            ps.setBoolean(7, task.getComplete());
+            ps.setString(8, task.reporter != null ? task.reporter.getUsername() : null);
+            ps.setNull(9, java.sql.Types.VARCHAR);
+            ps.setTimestamp(10, Timestamp.valueOf(task.getTimeTrack().getCreateTime()));
+            LocalDateTime completedAt = task.getTimeTrack().getCompleteTime();
+            ps.setTimestamp(11, completedAt != null ? Timestamp.valueOf(completedAt) : null);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                task.setTASKID(rs.getInt(1));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void reloadTasks(ArrayList<Task> tasks) {
+        String sql = "UPDATE tasks SET complete = ?, completed_at = ?, assignee = ?, status = ?, priority = ? " +
+                "WHERE task_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            for (Task task : tasks) {
+                ps.setBoolean(1, task.getComplete());
+                LocalDateTime completedAt = task.getTimeTrack().getCompleteTime();
+                ps.setTimestamp(2, completedAt != null ? Timestamp.valueOf(completedAt) : null);
+                ps.setNull(3, java.sql.Types.VARCHAR);
+                ps.setString(4, task.getStatus());
+                ps.setInt(5, task.getTask_Priority());
+                ps.setInt(6, task.getTASKID());
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public ArrayList<Task> getTasks() {
-        return taskDatabase;
+        ArrayList<Task> tasks = new ArrayList<>();
+        Map<String, Person> userMap = new HashMap<>();
+        for (Person p : getUsers()) {
+            userMap.put(p.getUsername(), p);
+        }
+
+        String sql = "SELECT * FROM tasks";
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Timestamp createdAt = rs.getTimestamp("created_at");
+                Timestamp completedAt = rs.getTimestamp("completed_at");
+                TimeTrack time = new TimeTrack(
+                        createdAt.toLocalDateTime(),
+                        completedAt != null ? completedAt.toLocalDateTime() : null);
+
+                Task task = new Task(
+                        rs.getInt("task_id"),
+                        rs.getString("task_name"),
+                        rs.getString("description"),
+                        rs.getString("category"),
+                        rs.getString("room_num"),
+                        rs.getInt("priority"),
+                        rs.getString("status"),
+                        rs.getBoolean("complete"),
+                        time);
+
+                String reporterUsername = rs.getString("reporter");
+                if (reporterUsername != null && userMap.get(reporterUsername) instanceof Resident) {
+                    task.reporter = (Resident) userMap.get(reporterUsername);
+                }
+
+                tasks.add(task);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return tasks;
+    }
+
+    // ── Notifications ─────────────────────────────────────────────────────────
+
+    public void addItem(Notification notification) {
+        String sql = "INSERT INTO notifications (recipient, subject, body) VALUES (?, ?, ?)";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            Person recipient = notification.getRecipient();
+            ps.setString(1, recipient != null ? recipient.getUsername() : null);
+            ps.setString(2, notification.getSubjectLine());
+            ps.setString(3, "");
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public ArrayList<Notification> getNotifications() {
-        return notificationDatabase;
+        ArrayList<Notification> notifications = new ArrayList<>();
+        Map<String, Person> userMap = new HashMap<>();
+        for (Person p : getUsers()) {
+            userMap.put(p.getUsername(), p);
+        }
+
+        String sql = "SELECT * FROM notifications";
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                String recipientUsername = rs.getString("recipient");
+                Person recipient = userMap.get(recipientUsername);
+
+                EmailData emailData = new EmailData();
+                emailData.setRecipient(recipient);
+                emailData.setSubject(rs.getString("subject"));
+                emailData.setText(rs.getString("body"));
+
+                notifications.add(new Notification(emailData));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return notifications;
+    }
+
+    // ── Appointments ──────────────────────────────────────────────────────────
+
+    public void addAppointment(Appointment appt) {
+        String sql = "INSERT INTO appointments (username, appt_date, time_slot, location, machine_no, created_at) " +
+                "VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, appt.getUsername());
+            ps.setDate(2, Date.valueOf(appt.getDate()));
+            ps.setString(3, appt.getTimeSlot());
+            ps.setString(4, appt.getLocation());
+            ps.setString(5, appt.getMachineNo());
+            ps.setTimestamp(6, Timestamp.valueOf(appt.getCreatedAt()));
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                appt.setId(rs.getInt(1));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public ArrayList<Appointment> getAppointments(String username) {
+        ArrayList<Appointment> list = new ArrayList<>();
+        String sql = "SELECT * FROM appointments WHERE username = ? ORDER BY appt_date, time_slot";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, username);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(new Appointment(
+                        rs.getInt("id"),
+                        rs.getString("username"),
+                        rs.getDate("appt_date").toLocalDate(),
+                        rs.getString("time_slot"),
+                        rs.getString("location"),
+                        rs.getString("machine_no"),
+                        rs.getTimestamp("created_at").toLocalDateTime()));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }

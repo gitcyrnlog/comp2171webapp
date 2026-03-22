@@ -19,6 +19,11 @@ public class Notification implements Serializable {
 		return recipient;
 
 	}
+
+	public String getSubjectLine() {
+		return emailData != null ? emailData.getSubject() : "";
+	}
+
 	public void send() {
 		try {
 			EmailSenderUtil.sendEmail(emailData);

@@ -14,6 +14,14 @@ public class TimeTrack implements Serializable {
         creationTime = LocalDateTime.now();
     }
 
+    public TimeTrack(LocalDateTime creationTime, LocalDateTime completeTime) {
+        this.creationTime = creationTime;
+        if (completeTime != null) {
+            this.CompleteTime = completeTime;
+            this.TimeTaken = Duration.between(creationTime, completeTime);
+        }
+    }
+
     public void setCompleteTime(){
         this.CompleteTime = LocalDateTime.now();
         this.TimeTaken = Duration.between(creationTime, CompleteTime);

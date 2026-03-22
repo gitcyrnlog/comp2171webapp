@@ -9,7 +9,7 @@ public class Task implements Serializable {
     private String Task_name;
     private String task_Description;
     private int Task_Priority = 0;
-    private final int TASKID;
+    private int TASKID;
     private static int idCounter = 0;
     private String Category;
     private TimeTrack Time;
@@ -28,6 +28,19 @@ public class Task implements Serializable {
         this.RoomNum = RoomNum;
         this.Status = "Task Created";
         this.TASKID = idCounter++;
+    }
+
+    public Task(int id, String Task_name, String task_Description, String Category, String RoomNum,
+            int priority, String status, boolean complete, TimeTrack time) {
+        this.TASKID = id;
+        this.Task_name = Task_name;
+        this.task_Description = task_Description;
+        this.Category = Category;
+        this.RoomNum = RoomNum;
+        this.Task_Priority = priority;
+        this.Status = status;
+        this.Complete = complete;
+        this.Time = time;
     }
 
     public void Assign(Staff assignee) {
@@ -76,6 +89,10 @@ public class Task implements Serializable {
 
     public int getTASKID() {
         return TASKID;
+    }
+
+    public void setTASKID(int id) {
+        this.TASKID = id;
     }
 
     public String getTask_Category() {

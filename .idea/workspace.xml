@@ -5,8 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7351b11f-e5bd-41b6-830d-1634477d42e5" name="Changes" comment="Added start of Person Class">
-      <change beforePath="D:/SE_final/.idea/workspace.xml" beforeDir="false" afterPath="D:/SE_final/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="D:/SE_final/src/Person.java" beforeDir="false" afterPath="D:/SE_final/src/Person.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/activation_1_1.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/javax_mail_1_6_2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/libraries/postgresql_42_7_10.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/SE.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notifications.dat" beforeDir="false" afterPath="$PROJECT_DIR$/notifications.dat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Application/Notification/Notification.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Application/Notification/Notification.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Business/Task.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Business/Task.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Business/TimeTrack.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Business/TimeTrack.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Data/DatabaseManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Data/DatabaseManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,11 +37,11 @@
         <entry key="D:/SE_final" value="Dominic-working" />
       </map>
     </option>
-    <option name="RECENT_GIT_ROOT_PATH" value="D:/SE_final" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 4
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
   <component name="ProjectId" id="2pBmxyHJ5KkHX5igP6ajFwNDKq0" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
@@ -39,25 +50,35 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "Application.GAH Facilities.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "Dominic-Production",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "Frontend-GUI",
+    "jdk.selected.JAVA_MODULE": "openjdk-21",
     "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/cowan/Documents/UWI/FST Classes/third year/Semester 2/COMP2171/Project Breakdown/SE/jars/postgresql-42.7.10.jar",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "onboarding.tips.debug.path": "D:/SE_final/src/Main.java",
+    "project.structure.last.edited": "Libraries",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
-  <component name="SharedIndexes">
-    <attachedChunks>
-      <set>
-        <option value="jdk-21.0.1-openjdk-21.0.1-f644763e9732-f98dd351" />
-      </set>
-    </attachedChunks>
+  <component name="RunManager">
+    <configuration name="GAH Facilities" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="Main" />
+      <module name="SE" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
