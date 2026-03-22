@@ -293,6 +293,66 @@ public class DatabaseManager {
         }
     }
 
+    public boolean isSlotTaken(java.time.LocalDate date, String timeSlot, String location, String machineNo) {
+        String sql = "SELECT COUNT(*) FROM appointments WHERE appt_date = ? AND time_slot = ? AND location = ? AND machine_no = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setDate(1, Date.valueOf(date));
+            ps.setString(2, timeSlot);
+            ps.setString(3, location);
+            ps.setString(4, machineNo);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1) > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public ArrayList<Appointment> getAllAppointments() {
+        ArrayList<Appointment> list = new ArrayList<>();
+        String sql = "SELECT * FROM appointments ORDER BY appt_date, time_slot";
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(new Appointment(
+                        rs.getInt("id"),
+                        rs.getString("username"),
+                        rs.getDate("appt_date").toLocalDate(),
+                        rs.getString("time_slot"),
+                        rs.getString("location"),
+                        rs.getString("machine_no"),
+                        rs.getTimestamp("created_at").toLocalDateTime()));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public void deleteAppointment(int id) {
+        String sql = "DELETE FROM appointments WHERE id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateTask(Task task) {
+        String sql = "UPDATE tasks SET task_name = ?, description = ?, category = ?, priority = ? WHERE task_id = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, task.getTask_name());
+            ps.setString(2, task.getTask_Description());
+            ps.setString(3, task.getTask_Category());
+            ps.setInt(4, task.getTask_Priority());
+            ps.setInt(5, task.getTASKID());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public ArrayList<Appointment> getAppointments(String username) {
         ArrayList<Appointment> list = new ArrayList<>();
         String sql = "SELECT * FROM appointments WHERE username = ? ORDER BY appt_date, time_slot";

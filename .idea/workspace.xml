@@ -5,10 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7351b11f-e5bd-41b6-830d-1634477d42e5" name="Changes" comment="Added start of Person Class">
-      <change afterPath="$PROJECT_DIR$/.idea/libraries/activation_1_1.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/libraries/javax_mail_1_6_2.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/libraries/postgresql_42_7_10.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/SE.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/jars/activation-1.1.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/jars/javax.mail-1.6.2.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/jars/postgresql-42.7.10.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Application/Gui/LoginPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Application/Gui/MainWindow.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Application/Gui/ResidentPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Application/Gui/StaffPanel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Data/Appointment.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/db.properties" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
@@ -18,6 +23,7 @@
       <change beforePath="$PROJECT_DIR$/src/Business/TimeTrack.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Business/TimeTrack.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Data/DatabaseManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Data/DatabaseManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/SE.iml" beforeDir="false" afterPath="$PROJECT_DIR$/src/SE.iml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

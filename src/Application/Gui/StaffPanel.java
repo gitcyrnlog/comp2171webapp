@@ -1,6 +1,7 @@
 package Application.Gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
@@ -24,10 +25,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 
 import Application.Notification.EmailData;
@@ -36,6 +39,7 @@ import Base.Person;
 import Base.Resident;
 import Base.Staff;
 import Business.Task;
+import Data.Appointment;
 import Data.DatabaseManager;
 
 import java.util.ArrayList;
@@ -50,6 +54,8 @@ public class StaffPanel extends JPanel {
             new String[] { "By name", "By room number", "By priority" });
     private final DefaultListModel<Task> taskListModel = new DefaultListModel<>();
     private final JList<Task> taskList = new JList<>(taskListModel);
+    private final DefaultListModel<Appointment> apptListModel = new DefaultListModel<>();
+    private final JList<Appointment> apptList = new JList<>(apptListModel);
 
     public StaffPanel(MainWindow window) {
         this.window = window;
@@ -62,6 +68,7 @@ public class StaffPanel extends JPanel {
         JTabbedPane tabs = new JTabbedPane();
         tabs.addTab("Residents", buildResidentsTab());
         tabs.addTab("Tasks", buildTasksTab());
+        tabs.addTab("Appointments", buildAppointmentsTab());
 
         add(tabs, BorderLayout.CENTER);
 
@@ -71,6 +78,8 @@ public class StaffPanel extends JPanel {
         south.add(logout);
         add(south, BorderLayout.SOUTH);
     }
+
+    // ── Residents tab ─────────────────────────────────────────────────────────
 
     private JPanel buildResidentsTab() {
         JPanel p = new JPanel(new BorderLayout());
@@ -87,6 +96,8 @@ public class StaffPanel extends JPanel {
         return p;
     }
 
+    // ── Tasks tab ─────────────────────────────────────────────────────────────
+
     private JPanel buildTasksTab() {
         JPanel p = new JPanel(new BorderLayout());
         taskList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -98,13 +109,14 @@ public class StaffPanel extends JPanel {
                 if (value instanceof Task) {
                     Task t = (Task) value;
                     String status = t.isComplete() ? "Complete" : "Open";
-                    setText(t.getTask_name() + " — " + t.getRoomNum() + " (" + status + ")");
+                    setText("[" + t.getTask_Category() + "] " + t.getTask_name()
+                            + " — " + t.getRoomNum() + " (" + status + ")");
                 }
                 return this;
             }
         });
         sortCombo.addActionListener(e -> refreshTaskList());
-        JButton open = new JButton("Open");
+        JButton open = new JButton("Open / Edit");
         open.addActionListener(e -> openSelectedTask());
         JButton refresh = new JButton("Refresh");
         refresh.addActionListener(e -> refreshTaskList());
@@ -118,11 +130,45 @@ public class StaffPanel extends JPanel {
         return p;
     }
 
+    // ── Appointments tab ──────────────────────────────────────────────────────
+
+    private JPanel buildAppointmentsTab() {
+        JPanel p = new JPanel(new BorderLayout());
+        apptList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        apptList.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
+                    boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Appointment) {
+                    Appointment a = (Appointment) value;
+                    setText(a.getDate() + "  |  " + a.getLocation() + "  |  " + a.getTimeSlot()
+                            + "  |  Machine " + a.getMachineNo() + "  — " + a.getUsername());
+                }
+                return this;
+            }
+        });
+        JButton refresh = new JButton("Refresh");
+        refresh.addActionListener(e -> refreshApptList());
+        JButton delete = new JButton("Delete");
+        delete.setForeground(Color.RED);
+        delete.addActionListener(e -> deleteSelectedAppt());
+        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        top.add(refresh);
+        top.add(delete);
+        p.add(top, BorderLayout.NORTH);
+        p.add(new JScrollPane(apptList), BorderLayout.CENTER);
+        return p;
+    }
+
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
+
     public void onShow() {
         Person u = window.getCurrentUser();
         welcomeLabel.setText("Welcome, " + u.getName() + " (Staff)");
         refreshResidents();
         refreshTaskList();
+        refreshApptList();
     }
 
     private void refreshResidents() {
@@ -132,10 +178,7 @@ public class StaffPanel extends JPanel {
                 sb.append(p.toString()).append("\n");
             }
         }
-        if (sb.length() == 0) {
-            sb.append("No residents.");
-        }
-        residentsArea.setText(sb.toString());
+        residentsArea.setText(sb.length() == 0 ? "No residents." : sb.toString());
         residentsArea.setCaretPosition(0);
     }
 
@@ -150,10 +193,33 @@ public class StaffPanel extends JPanel {
         } else {
             Collections.sort(tasks, (t1, t2) -> Integer.compare(t1.getTask_Priority(), t2.getTask_Priority()));
         }
-        for (Task t : tasks) {
-            taskListModel.addElement(t);
+        for (Task t : tasks) taskListModel.addElement(t);
+    }
+
+    private void refreshApptList() {
+        apptListModel.clear();
+        for (Appointment a : window.getDatabase().getAllAppointments()) {
+            apptListModel.addElement(a);
         }
     }
+
+    private void deleteSelectedAppt() {
+        Appointment appt = apptList.getSelectedValue();
+        if (appt == null) {
+            JOptionPane.showMessageDialog(this, "Select an appointment first.", "Appointments",
+                    JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Delete appointment for " + appt.getUsername() + " on " + appt.getDate() + "?",
+                "Confirm delete", JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) return;
+        window.getDatabase().deleteAppointment(appt.getId());
+        refreshApptList();
+        JOptionPane.showMessageDialog(this, "Appointment deleted.", "Done", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    // ── Task dialog (open / edit / complete / assign) ─────────────────────────
 
     private void openSelectedTask() {
         Task task = taskList.getSelectedValue();
@@ -164,95 +230,178 @@ public class StaffPanel extends JPanel {
         Window owner = SwingUtilities.getWindowAncestor(this);
         JDialog dlg = new JDialog(owner, task.getTask_name(), Dialog.ModalityType.APPLICATION_MODAL);
         dlg.setLayout(new BorderLayout(8, 8));
-        JTextArea info = new JTextArea(task.toString() + "\nComplete: " + task.isComplete());
+
+        // ── Info area
+        JTextArea info = new JTextArea(task.toString() + "\nStatus: " + (task.isComplete() ? "Complete" : "Open"));
         info.setEditable(false);
         info.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         dlg.add(new JScrollPane(info), BorderLayout.CENTER);
 
+        // ── South panel
+        JPanel south = new JPanel();
+        south.setLayout(new BoxLayout(south, BoxLayout.Y_AXIS));
+        south.setBorder(BorderFactory.createEmptyBorder(0, 8, 8, 8));
+
+        // Custom message to include in email
+        JPanel msgPanel = new JPanel(new BorderLayout(4, 0));
+        msgPanel.setBorder(BorderFactory.createTitledBorder("Message to resident (included in email)"));
+        JTextArea msgArea = new JTextArea(3, 30);
+        msgArea.setLineWrap(true);
+        msgArea.setWrapStyleWord(true);
+        msgPanel.add(new JScrollPane(msgArea), BorderLayout.CENTER);
+        south.add(msgPanel);
+        south.add(Box.createVerticalStrut(6));
+
+        // Assign row
         ArrayList<Staff> staffMembers = new ArrayList<>();
         for (Person p : window.getDatabase().getUsers()) {
-            if (p instanceof Staff) {
-                staffMembers.add((Staff) p);
-            }
+            if (p instanceof Staff) staffMembers.add((Staff) p);
         }
         JComboBox<Staff> assignCombo = new JComboBox<>(staffMembers.toArray(new Staff[0]));
         JPanel assignRow = new JPanel(new FlowLayout(FlowLayout.LEFT));
         assignRow.add(new JLabel("Assign to:"));
         assignRow.add(assignCombo);
-
-        JPanel south = new JPanel();
-        south.setLayout(new BoxLayout(south, BoxLayout.Y_AXIS));
         south.add(assignRow);
-        south.add(Box.createVerticalStrut(6));
+        south.add(Box.createVerticalStrut(4));
+
+        // Action buttons
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton complete = new JButton("Mark complete");
         complete.setEnabled(!task.isComplete());
         complete.addActionListener(e -> {
-            markComplete(task);
+            markComplete(task, msgArea.getText().trim());
             dlg.dispose();
+            refreshTaskList();
         });
         JButton assign = new JButton("Assign");
         assign.addActionListener(e -> {
             Staff s = (Staff) assignCombo.getSelectedItem();
-            if (s == null) {
-                return;
-            }
-            assignTask(task, s);
+            if (s == null) return;
+            assignTask(task, s, msgArea.getText().trim());
             dlg.dispose();
+            refreshTaskList();
+        });
+        JButton edit = new JButton("Edit task");
+        edit.addActionListener(e -> {
+            dlg.dispose();
+            showEditTaskDialog(task);
         });
         JButton close = new JButton("Close");
         close.addActionListener(e -> dlg.dispose());
         buttons.add(complete);
         buttons.add(assign);
+        buttons.add(edit);
         buttons.add(close);
         south.add(buttons);
         dlg.add(south, BorderLayout.SOUTH);
         dlg.pack();
+        dlg.setMinimumSize(new java.awt.Dimension(500, 300));
         dlg.setLocationRelativeTo(this);
         dlg.setVisible(true);
-        refreshTaskList();
     }
 
-    private void markComplete(Task task) {
+    private void showEditTaskDialog(Task task) {
+        JTextField nameField = new JTextField(task.getTask_name(), 20);
+        JTextArea descArea = new JTextArea(task.getTask_Description(), 4, 25);
+        descArea.setLineWrap(true);
+        descArea.setWrapStyleWord(true);
+        JTextField categoryField = new JTextField(task.getTask_Category(), 15);
+        JSpinner prioritySpinner = new JSpinner(new SpinnerNumberModel(task.getTask_Priority(), 0, 10, 1));
+
+        JPanel form = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(4, 4, 4, 4);
+        int row = 0;
+        gbc.gridx = 0; gbc.gridy = row; gbc.anchor = GridBagConstraints.LINE_END;
+        form.add(new JLabel("Title:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
+        form.add(nameField, gbc); row++;
+
+        gbc.gridx = 0; gbc.gridy = row; gbc.anchor = GridBagConstraints.FIRST_LINE_END; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        form.add(new JLabel("Description:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.BOTH; gbc.weighty = 1;
+        form.add(new JScrollPane(descArea), gbc); row++;
+
+        gbc.gridx = 0; gbc.gridy = row; gbc.anchor = GridBagConstraints.LINE_END; gbc.fill = GridBagConstraints.NONE; gbc.weighty = 0;
+        form.add(new JLabel("Category:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL;
+        form.add(categoryField, gbc); row++;
+
+        gbc.gridx = 0; gbc.gridy = row; gbc.anchor = GridBagConstraints.LINE_END; gbc.fill = GridBagConstraints.NONE;
+        form.add(new JLabel("Priority (0-10):"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.NONE;
+        form.add(prioritySpinner, gbc);
+
+        int result = JOptionPane.showConfirmDialog(this, form, "Edit task: " + task.getTask_name(),
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (result != JOptionPane.OK_OPTION) return;
+
+        String newName = nameField.getText().trim();
+        if (newName.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Title cannot be empty.", "Edit task", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        task.setTask_name(newName);
+        task.setTask_Description(descArea.getText().trim());
+        task.setCategory(categoryField.getText().trim());
+        task.setTask_Priority((Integer) prioritySpinner.getValue());
+        window.getDatabase().updateTask(task);
+        refreshTaskList();
+        JOptionPane.showMessageDialog(this, "Task updated.", "Done", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    // ── Email actions ─────────────────────────────────────────────────────────
+
+    private void markComplete(Task task, String staffMessage) {
         task.TaskComplete();
         DatabaseManager db = window.getDatabase();
         db.reloadTasks(window.getTaskManager().GetTasks());
 
+        String body = "Your issue \"" + task.getTask_name() + "\" has been marked as complete.";
+        if (!staffMessage.isEmpty()) body += "\n\nMessage from staff: " + staffMessage;
+
         EmailData emailData = new EmailData();
         emailData.setRecipient(task.reporter);
-        emailData.setSubject("Task completed: " + task.getTask_name());
-        emailData.setText("The task " + task.getTask_name() + " has been completed.");
+        emailData.setSubject("Issue resolved: " + task.getTask_name());
+        emailData.setText(body);
         Notification notification = new Notification(emailData);
         notification.send();
         db.addItem(notification);
 
-        JOptionPane.showMessageDialog(this, "Task marked complete.", "Tasks", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Task marked complete and resident notified.", "Done",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
-    private void assignTask(Task task, Staff staff) {
+    private void assignTask(Task task, Staff staff, String staffMessage) {
         task.Assign(staff);
         DatabaseManager db = window.getDatabase();
 
-        EmailData emailData = new EmailData();
-        emailData.setRecipient(staff);
-        emailData.setSubject("Task assigned: " + task.getTask_name());
-        emailData.setText("You have been assigned the task " + task.getTask_name());
-        Notification notification = new Notification(emailData);
-        notification.send();
-        db.addItem(notification);
+        // Notify the assigned staff member
+        EmailData ed1 = new EmailData();
+        ed1.setRecipient(staff);
+        ed1.setSubject("Task assigned: " + task.getTask_name());
+        ed1.setText("You have been assigned the task \"" + task.getTask_name() + "\".");
+        Notification n1 = new Notification(ed1);
+        n1.send();
+        db.addItem(n1);
 
-        EmailData emailData2 = new EmailData();
-        emailData2.setRecipient(task.reporter);
-        emailData2.setSubject("Task assigned: " + task.getTask_name());
-        emailData2.setText("The task " + task.getTask_name() + " has been assigned to " + staff.getName());
-        Notification notification2 = new Notification(emailData2);
-        notification2.send();
-        db.addItem(notification2);
+        // Notify the resident reporter
+        String body = "Your issue \"" + task.getTask_name() + "\" has been assigned to " + staff.getName() + ".";
+        if (!staffMessage.isEmpty()) body += "\n\nMessage from staff: " + staffMessage;
+        EmailData ed2 = new EmailData();
+        ed2.setRecipient(task.reporter);
+        ed2.setSubject("Update on your issue: " + task.getTask_name());
+        ed2.setText(body);
+        Notification n2 = new Notification(ed2);
+        n2.send();
+        db.addItem(n2);
 
         db.reloadTasks(window.getTaskManager().GetTasks());
-        JOptionPane.showMessageDialog(this, "Task assigned to " + staff.getName() + ".", "Tasks",
+        JOptionPane.showMessageDialog(this, "Task assigned to " + staff.getName() + " and resident notified.", "Done",
                 JOptionPane.INFORMATION_MESSAGE);
     }
+
+    // ── Create resident dialog ─────────────────────────────────────────────────
 
     private void showCreateResidentDialog() {
         JTextField username = new JTextField(16);
@@ -263,52 +412,17 @@ public class StaffPanel extends JPanel {
         JPanel form = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(4, 4, 4, 4);
-        int row = 0;
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.anchor = GridBagConstraints.LINE_END;
-        form.add(new JLabel("Username:"), gbc);
-        gbc.gridx = 1;
-        gbc.anchor = GridBagConstraints.LINE_START;
-        form.add(username, gbc);
-        row++;
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.anchor = GridBagConstraints.LINE_END;
-        form.add(new JLabel("Name:"), gbc);
-        gbc.gridx = 1;
-        gbc.anchor = GridBagConstraints.LINE_START;
-        form.add(name, gbc);
-        row++;
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.anchor = GridBagConstraints.LINE_END;
-        form.add(new JLabel("Email:"), gbc);
-        gbc.gridx = 1;
-        gbc.anchor = GridBagConstraints.LINE_START;
-        form.add(email, gbc);
-        row++;
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.anchor = GridBagConstraints.LINE_END;
-        form.add(new JLabel("Password:"), gbc);
-        gbc.gridx = 1;
-        gbc.anchor = GridBagConstraints.LINE_START;
-        form.add(password, gbc);
-        row++;
-        gbc.gridx = 0;
-        gbc.gridy = row;
-        gbc.anchor = GridBagConstraints.LINE_END;
-        form.add(new JLabel("Room:"), gbc);
-        gbc.gridx = 1;
-        gbc.anchor = GridBagConstraints.LINE_START;
-        form.add(room, gbc);
-
-        int result = JOptionPane.showConfirmDialog(this, form, "Create resident", JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE);
-        if (result != JOptionPane.OK_OPTION) {
-            return;
+        String[] lbls = {"Username:", "Name:", "Email:", "Password:", "Room:"};
+        Component[] flds = {username, name, email, password, room};
+        for (int i = 0; i < lbls.length; i++) {
+            gbc.gridx = 0; gbc.gridy = i; gbc.anchor = GridBagConstraints.LINE_END;
+            form.add(new JLabel(lbls[i]), gbc);
+            gbc.gridx = 1; gbc.anchor = GridBagConstraints.LINE_START;
+            form.add(flds[i], gbc);
         }
+        int result = JOptionPane.showConfirmDialog(this, form, "Create resident",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (result != JOptionPane.OK_OPTION) return;
         String u = username.getText().trim();
         String n = name.getText().trim();
         String em = email.getText().trim();
@@ -325,7 +439,7 @@ public class StaffPanel extends JPanel {
         EmailData emailData = new EmailData();
         emailData.setRecipient(resident);
         emailData.setSubject("Account created");
-        emailData.setText("Your account has been created. You can now log in and change your password");
+        emailData.setText("Your account has been created. You can now log in and change your password.");
         Notification notification = new Notification(emailData);
         notification.send();
         window.getDatabase().addItem(notification);

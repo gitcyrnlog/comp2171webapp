@@ -12,8 +12,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Window;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -29,11 +27,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
-import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.SpinnerDateModel;
 import javax.swing.SwingUtilities;
 
 import Application.Notification.EmailData;
@@ -188,79 +184,184 @@ public class ResidentPanel extends JPanel {
         return outer;
     }
 
-    // ── Book Wash Appointment ────────────────────────────────────────────────
+    // ── Book Wash Appointment (Calendar) ────────────────────────────────────
 
     private JPanel buildWashPanel() {
-        String[] slots = {
-            "7:00 AM – 9:00 AM",
-            "9:00 AM – 11:00 AM",
-            "11:00 AM – 1:00 PM",
-            "1:00 PM – 3:00 PM",
-            "3:00 PM – 5:00 PM",
-            "5:00 PM – 7:00 PM"
-        };
-        JComboBox<String> slotCombo = new JComboBox<>(slots);
-        JComboBox<String> locationCombo = new JComboBox<>(new String[]{"Block J Laundry Room", "Block G Laundry Room"});
-        JTextField machineField = new JTextField(10);
-
-        SpinnerDateModel dateModel = new SpinnerDateModel(
-                new Date(), new Date(), null, java.util.Calendar.DAY_OF_MONTH);
-        JSpinner dateSpinner = new JSpinner(dateModel);
-        dateSpinner.setEditor(new JSpinner.DateEditor(dateSpinner, "dd/MM/yyyy"));
-
-        JPanel form = new JPanel(new GridBagLayout());
-        form.setBorder(BorderFactory.createEmptyBorder(20, 60, 20, 60));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 8, 8, 8);
-        int row = 0;
-
-        gbc.gridx = 0; gbc.gridy = row; gbc.anchor = GridBagConstraints.LINE_END;
-        form.add(new JLabel("Date:"), gbc);
-        gbc.gridx = 1; gbc.anchor = GridBagConstraints.LINE_START; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        form.add(dateSpinner, gbc); row++;
-
-        gbc.gridx = 0; gbc.gridy = row; gbc.anchor = GridBagConstraints.LINE_END; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        form.add(new JLabel("Time slot:"), gbc);
-        gbc.gridx = 1; gbc.anchor = GridBagConstraints.LINE_START; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        form.add(slotCombo, gbc); row++;
-
-        gbc.gridx = 0; gbc.gridy = row; gbc.anchor = GridBagConstraints.LINE_END; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        form.add(new JLabel("Location:"), gbc);
-        gbc.gridx = 1; gbc.anchor = GridBagConstraints.LINE_START; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        form.add(locationCombo, gbc); row++;
-
-        gbc.gridx = 0; gbc.gridy = row; gbc.anchor = GridBagConstraints.LINE_END; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        form.add(new JLabel("Machine number:"), gbc);
-        gbc.gridx = 1; gbc.anchor = GridBagConstraints.LINE_START; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
-        form.add(machineField, gbc); row++;
-
-        gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.NONE; gbc.anchor = GridBagConstraints.CENTER;
-        JButton book = new JButton("Book Appointment");
-        book.addActionListener(e -> {
-            String machine = machineField.getText().trim();
-            if (machine.isEmpty()) {
-                JOptionPane.showMessageDialog(form, "Enter a machine number.", "Book Appointment", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            Date selectedDate = (Date) dateSpinner.getValue();
-            LocalDate localDate = selectedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            String slot = (String) slotCombo.getSelectedItem();
-            String location = (String) locationCombo.getSelectedItem();
-            String username = window.getCurrentUser().getUsername();
-
-            Appointment appt = new Appointment(username, localDate, slot, location, machine);
-            window.getDatabase().addAppointment(appt);
-
-            machineField.setText("");
-            JOptionPane.showMessageDialog(form, "Appointment booked for " + localDate + ", " + slot + ".", "Booked", JOptionPane.INFORMATION_MESSAGE);
-            cards.show(cardPanel, HOME);
-        });
-        form.add(book, gbc);
-
         JPanel outer = new JPanel(new BorderLayout());
         outer.add(buildBackBar("Book Wash Appointment"), BorderLayout.NORTH);
-        outer.add(form, BorderLayout.CENTER);
+        outer.add(new WashCalendarPanel(), BorderLayout.CENTER);
         return outer;
+    }
+
+    private class WashCalendarPanel extends JPanel {
+        private static final String[] SLOTS = {
+            "7:00 AM – 9:00 AM", "9:00 AM – 11:00 AM", "11:00 AM – 1:00 PM",
+            "1:00 PM – 3:00 PM", "3:00 PM – 5:00 PM",  "5:00 PM – 7:00 PM"
+        };
+        private static final String[] DAYS = {"Sun","Mon","Tue","Wed","Thu","Fri","Sat"};
+
+        private java.time.YearMonth currentMonth = java.time.YearMonth.now();
+        private LocalDate selectedDate = null;
+        private String selectedSlot = null;
+
+        private final JComboBox<String> locationCombo = new JComboBox<>(
+                new String[]{"Block J Laundry Room", "Block G Laundry Room"});
+        private final JTextField machineField = new JTextField(8);
+        private final JLabel monthLabel = new JLabel("", JLabel.CENTER);
+        private final JPanel calGrid = new JPanel(new java.awt.GridLayout(0, 7, 4, 4));
+        private final JPanel slotsPanel = new JPanel(new java.awt.GridLayout(2, 3, 6, 6));
+        private final JLabel selectionLabel = new JLabel("Select a date", JLabel.CENTER);
+        private final JButton bookBtn = new JButton("Book Appointment");
+
+        WashCalendarPanel() {
+            setLayout(new BorderLayout(0, 8));
+            setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+
+            // ── top controls
+            JPanel controls = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+            controls.add(new JLabel("Location:"));
+            controls.add(locationCombo);
+            controls.add(new JLabel("Machine #:"));
+            controls.add(machineField);
+            JButton refreshSlots = new JButton("Check availability");
+            refreshSlots.addActionListener(e -> refreshSlots());
+            controls.add(refreshSlots);
+            add(controls, BorderLayout.NORTH);
+
+            // ── calendar area
+            JPanel calArea = new JPanel(new BorderLayout(0, 4));
+            JPanel nav = new JPanel(new BorderLayout());
+            JButton prev = new JButton("◀");
+            JButton next = new JButton("▶");
+            prev.addActionListener(e -> { currentMonth = currentMonth.minusMonths(1); buildCalGrid(); });
+            next.addActionListener(e -> { currentMonth = currentMonth.plusMonths(1); buildCalGrid(); });
+            nav.add(prev, BorderLayout.WEST);
+            nav.add(monthLabel, BorderLayout.CENTER);
+            nav.add(next, BorderLayout.EAST);
+            calArea.add(nav, BorderLayout.NORTH);
+
+            // Day-of-week header
+            JPanel dayHeader = new JPanel(new java.awt.GridLayout(1, 7, 4, 0));
+            for (String d : DAYS) {
+                JLabel lbl = new JLabel(d, JLabel.CENTER);
+                lbl.setFont(lbl.getFont().deriveFont(Font.BOLD));
+                dayHeader.add(lbl);
+            }
+            calArea.add(dayHeader, BorderLayout.CENTER);
+            calArea.add(calGrid, BorderLayout.SOUTH);
+
+            // ── slots area
+            JPanel slotsArea = new JPanel(new BorderLayout(0, 4));
+            slotsArea.setBorder(BorderFactory.createTitledBorder("Time slots for selected date"));
+            slotsArea.add(selectionLabel, BorderLayout.NORTH);
+            slotsPanel.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+            slotsArea.add(slotsPanel, BorderLayout.CENTER);
+
+            // ── book button
+            bookBtn.setEnabled(false);
+            bookBtn.addActionListener(e -> bookAppointment());
+
+            JPanel centerContent = new JPanel(new BorderLayout(0, 8));
+            centerContent.add(calArea, BorderLayout.NORTH);
+            centerContent.add(slotsArea, BorderLayout.CENTER);
+            centerContent.add(bookBtn, BorderLayout.SOUTH);
+            add(centerContent, BorderLayout.CENTER);
+
+            buildCalGrid();
+            clearSlots();
+        }
+
+        private void buildCalGrid() {
+            monthLabel.setText(currentMonth.getMonth().getDisplayName(
+                    java.time.format.TextStyle.FULL, java.util.Locale.getDefault())
+                    + " " + currentMonth.getYear());
+            calGrid.removeAll();
+            java.time.LocalDate first = currentMonth.atDay(1);
+            int startDow = first.getDayOfWeek().getValue() % 7; // Sun=0
+            int daysInMonth = currentMonth.lengthOfMonth();
+            for (int i = 0; i < startDow; i++) calGrid.add(new JLabel());
+            for (int d = 1; d <= daysInMonth; d++) {
+                final LocalDate day = currentMonth.atDay(d);
+                JButton btn = new JButton(String.valueOf(d));
+                btn.setMargin(new Insets(2, 2, 2, 2));
+                if (day.equals(LocalDate.now())) btn.setFont(btn.getFont().deriveFont(Font.BOLD));
+                if (day.isBefore(LocalDate.now())) btn.setEnabled(false);
+                if (day.equals(selectedDate)) btn.setBackground(new java.awt.Color(150, 200, 255));
+                btn.addActionListener(e -> { selectedDate = day; selectedSlot = null; buildCalGrid(); refreshSlots(); });
+                calGrid.add(btn);
+            }
+            calGrid.revalidate();
+            calGrid.repaint();
+        }
+
+        private void refreshSlots() {
+            if (selectedDate == null) { clearSlots(); return; }
+            String machine = machineField.getText().trim();
+            String location = (String) locationCombo.getSelectedItem();
+            selectionLabel.setText(selectedDate.getDayOfWeek() + ", " + selectedDate);
+            slotsPanel.removeAll();
+            for (String slot : SLOTS) {
+                boolean taken = !machine.isEmpty() && window.getDatabase()
+                        .isSlotTaken(selectedDate, slot, location, machine);
+                JButton btn = new JButton("<html><center>" + slot.replace("–", "-") + "<br>"
+                        + (taken ? "BOOKED" : "Available") + "</center></html>");
+                btn.setEnabled(!taken);
+                if (taken) {
+                    btn.setBackground(new java.awt.Color(255, 160, 160));
+                    btn.setOpaque(true);
+                } else {
+                    btn.setBackground(new java.awt.Color(160, 230, 160));
+                    btn.setOpaque(true);
+                    final String s = slot;
+                    btn.addActionListener(e -> {
+                        selectedSlot = s;
+                        bookBtn.setEnabled(true);
+                        refreshSlots();
+                        btn.setBackground(new java.awt.Color(100, 180, 255));
+                    });
+                }
+                if (slot.equals(selectedSlot)) {
+                    btn.setBackground(new java.awt.Color(100, 180, 255));
+                }
+                slotsPanel.add(btn);
+            }
+            bookBtn.setEnabled(selectedSlot != null);
+            slotsPanel.revalidate();
+            slotsPanel.repaint();
+        }
+
+        private void clearSlots() {
+            selectionLabel.setText("Select a date above");
+            slotsPanel.removeAll();
+            for (int i = 0; i < 6; i++) slotsPanel.add(new JLabel());
+            bookBtn.setEnabled(false);
+            slotsPanel.revalidate();
+            slotsPanel.repaint();
+        }
+
+        private void bookAppointment() {
+            String machine = machineField.getText().trim();
+            if (machine.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Enter a machine number first.", "Book", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            String location = (String) locationCombo.getSelectedItem();
+            if (window.getDatabase().isSlotTaken(selectedDate, selectedSlot, location, machine)) {
+                JOptionPane.showMessageDialog(this, "That slot was just taken. Please pick another.", "Slot unavailable", JOptionPane.ERROR_MESSAGE);
+                refreshSlots();
+                return;
+            }
+            Appointment appt = new Appointment(window.getCurrentUser().getUsername(),
+                    selectedDate, selectedSlot, location, machine);
+            window.getDatabase().addAppointment(appt);
+            JOptionPane.showMessageDialog(this, "Booked: " + selectedDate + "  " + selectedSlot
+                    + "\n" + location + "  Machine " + machine, "Confirmed", JOptionPane.INFORMATION_MESSAGE);
+            selectedDate = null; selectedSlot = null;
+            machineField.setText("");
+            buildCalGrid();
+            clearSlots();
+            cards.show(cardPanel, HOME);
+        }
     }
 
     // ── View Issues & Appointments ────────────────────────────────────────────
