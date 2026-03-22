@@ -5,25 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7351b11f-e5bd-41b6-830d-1634477d42e5" name="Changes" comment="Added start of Person Class">
-      <change afterPath="$PROJECT_DIR$/jars/activation-1.1.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jars/javax.mail-1.6.2.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/jars/postgresql-42.7.10.jar" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Application/Gui/LoginPanel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Application/Gui/MainWindow.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Application/Gui/ResidentPanel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Application/Gui/StaffPanel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Data/Appointment.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/db.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/notifications.dat" beforeDir="false" afterPath="$PROJECT_DIR$/notifications.dat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Application/Notification/Notification.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Application/Notification/Notification.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Business/Task.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Business/Task.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Business/TimeTrack.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Business/TimeTrack.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Data/DatabaseManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Data/DatabaseManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/SE.iml" beforeDir="false" afterPath="$PROJECT_DIR$/src/SE.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Application/Gui/LoginPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Application/Gui/LoginPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Application/Gui/MainWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Application/Gui/MainWindow.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Application/Gui/ResidentPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Application/Gui/ResidentPanel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Application/Gui/StaffPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Application/Gui/StaffPanel.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,29 +40,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "Application.GAH Facilities.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "Frontend-GUI",
-    "jdk.selected.JAVA_MODULE": "openjdk-21",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/cowan/Documents/UWI/FST Classes/third year/Semester 2/COMP2171/Project Breakdown/SE/jars/postgresql-42.7.10.jar",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "onboarding.tips.debug.path": "D:/SE_final/src/Main.java",
-    "project.structure.last.edited": "Libraries",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;Application.GAH Facilities.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Frontend-GUI&quot;,
+    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;openjdk-21&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/cowan/Documents/UWI/FST Classes/third year/Semester 2/COMP2171/Project Breakdown/SE/jars/postgresql-42.7.10.jar&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;onboarding.tips.debug.path&quot;: &quot;D:/SE_final/src/Main.java&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Libraries&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="GAH Facilities" type="Application" factoryName="Application">
       <option name="MAIN_CLASS_NAME" value="Main" />

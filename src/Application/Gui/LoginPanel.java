@@ -20,8 +20,8 @@ import Base.Staff;
 
 public class LoginPanel extends JPanel {
     private final MainWindow window;
-    private final JTextField usernameField = new JTextField(22);
-    private final JPasswordField passwordField = new JPasswordField(22);
+    private final JTextField usernameField = new JTextField(16);
+    private final JPasswordField passwordField = new JPasswordField(16);
 
     public LoginPanel(MainWindow window) {
         this.window = window;

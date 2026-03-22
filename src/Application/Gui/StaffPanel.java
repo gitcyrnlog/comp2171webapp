@@ -302,7 +302,7 @@ public class StaffPanel extends JPanel {
 
     private void showEditTaskDialog(Task task) {
         JTextField nameField = new JTextField(task.getTask_name(), 20);
-        JTextArea descArea = new JTextArea(task.getTask_Description(), 4, 25);
+        JTextArea descArea = new JTextArea(task.getTask_Description(), 2, 25);
         descArea.setLineWrap(true);
         descArea.setWrapStyleWord(true);
         JTextField categoryField = new JTextField(task.getTask_Category(), 15);

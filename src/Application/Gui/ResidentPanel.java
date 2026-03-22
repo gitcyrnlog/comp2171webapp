@@ -131,7 +131,7 @@ public class ResidentPanel extends JPanel {
 
     private JPanel buildReportPanel(String category) {
         JTextField nameField = new JTextField();
-        JTextArea descArea = new JTextArea(4, 30);
+        JTextArea descArea = new JTextArea(2, 30);
         descArea.setLineWrap(true);
         descArea.setWrapStyleWord(true);
 

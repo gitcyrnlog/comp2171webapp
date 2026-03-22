@@ -17,6 +17,13 @@ public class MainWindow extends JFrame {
     public static final String CARD_RESIDENT = "RESIDENT";
     public static final String CARD_STAFF = "STAFF";
 
+    /** Compact frame when only the login form is shown */
+    private static final int LOGIN_WIDTH = 400;
+    private static final int LOGIN_HEIGHT = 480;
+    /** Full size for resident / staff dashboards */
+    private static final int APP_WIDTH = 920;
+    private static final int APP_HEIGHT = 640;
+
     private final DatabaseManager database;
     private final Task_Manager taskManager;
     private Person currentUser;
@@ -33,7 +40,6 @@ public class MainWindow extends JFrame {
 
         setTitle("GAH Facilities");
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setSize(920, 640);
         setLocationRelativeTo(null);
 
         loginPanel = new LoginPanel(this);
@@ -50,6 +56,12 @@ public class MainWindow extends JFrame {
 
     public void showCard(String name) {
         cardLayout.show(cardPanel, name);
+        if (CARD_LOGIN.equals(name)) {
+            setSize(LOGIN_WIDTH, LOGIN_HEIGHT);
+        } else {
+            setSize(APP_WIDTH, APP_HEIGHT);
+        }
+        setLocationRelativeTo(null);
     }
 
     public void onLoginSuccess(Person user) {
