@@ -14,6 +14,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 import Base.Login;
+import Base.BlockRep;
 import Base.Person;
 import Base.Resident;
 import Base.Staff;
@@ -77,15 +78,16 @@ public class LoginPanel extends JPanel {
         JTextField newEmail = new JTextField(16);
         JPasswordField newPassword = new JPasswordField(16);
         JPasswordField confirmPassword = new JPasswordField(16);
-        JComboBox<String> roleCombo = new JComboBox<>(new String[]{"Resident", "Staff"});
+        JComboBox<String> roleCombo = new JComboBox<>(new String[]{"Resident", "Block Rep", "Staff"});
         JTextField roomField = new JTextField(10);
         JLabel roomLabel = new JLabel("Room number:");
 
         // Show/hide room field depending on role
         roleCombo.addActionListener(e -> {
-            boolean isResident = "Resident".equals(roleCombo.getSelectedItem());
-            roomLabel.setVisible(isResident);
-            roomField.setVisible(isResident);
+            String selectedRole = (String) roleCombo.getSelectedItem();
+            boolean needsRoom = "Resident".equals(selectedRole) || "Block Rep".equals(selectedRole);
+            roomLabel.setVisible(needsRoom);
+            roomField.setVisible(needsRoom);
         });
 
         JPanel form = new JPanel(new GridBagLayout());
@@ -131,15 +133,20 @@ public class LoginPanel extends JPanel {
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
-        if ("Resident".equals(role) && room.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Room number is required for residents.", "Create account",
+        if (("Resident".equals(role) || "Block Rep".equals(role)) && room.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Room number is required for residents and block reps.", "Create account",
                     JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        Person person = "Resident".equals(role)
-                ? new Resident(n, em, u, pw, room)
-                : new Staff(n, em, u, pw);
+        Person person;
+        if ("Resident".equals(role)) {
+            person = new Resident(n, em, u, pw, room);
+        } else if ("Block Rep".equals(role)) {
+            person = new BlockRep(n, em, u, pw, room);
+        } else {
+            person = new Staff(n, em, u, pw);
+        }
 
         window.getDatabase().addItem(person);
         JOptionPane.showMessageDialog(this, "Account created! You can now log in.", "Success",

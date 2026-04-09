@@ -18,6 +18,7 @@ import java.util.Properties;
 import Application.Notification.EmailData;
 import Application.Notification.Notification;
 import Base.Person;
+import Base.BlockRep;
 import Base.Resident;
 import Base.Staff;
 import Business.Task;
@@ -121,6 +122,13 @@ public class DatabaseManager {
                 Person p;
                 if ("resident".equals(role)) {
                     p = new Resident(
+                            rs.getString("name"),
+                            rs.getString("email"),
+                            rs.getString("username"),
+                            rs.getString("password"),
+                            rs.getString("room_number"));
+                } else if ("blockrep".equals(role)) {
+                    p = new BlockRep(
                             rs.getString("name"),
                             rs.getString("email"),
                             rs.getString("username"),

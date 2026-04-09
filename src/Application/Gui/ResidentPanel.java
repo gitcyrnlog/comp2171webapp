@@ -72,7 +72,8 @@ public class ResidentPanel extends JPanel {
     }
 
     public void onShow() {
-        welcomeLabel.setText("Welcome, " + window.getCurrentUser().getName() + "!");
+        String suffix = isBlockRepUser() ? " (Block Rep)" : "";
+        welcomeLabel.setText("Welcome, " + window.getCurrentUser().getName() + suffix + "!");
         cards.show(cardPanel, HOME);
     }
 
@@ -439,8 +440,9 @@ public class ResidentPanel extends JPanel {
     private void refreshTaskList(DefaultListModel<Task> model) {
         model.clear();
         Person user = window.getCurrentUser();
+        boolean canViewAllTasks = isBlockRepUser();
         for (Task t : window.getTaskManager().GetTasks()) {
-            if (t.reporter != null && t.reporter.getUsername().equals(user.getUsername())) {
+            if (canViewAllTasks || (t.reporter != null && t.reporter.getUsername().equals(user.getUsername()))) {
                 model.addElement(t);
             }
         }
@@ -469,8 +471,14 @@ public class ResidentPanel extends JPanel {
         dlg.add(new JScrollPane(info), BorderLayout.CENTER);
         JPanel btns = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton recant = new JButton("Recant");
-        recant.setEnabled(!task.isComplete());
+        boolean canRecant = canRecantTask(task);
+        recant.setEnabled(canRecant);
         recant.addActionListener(e -> {
+            if (!canRecantTask(task)) {
+                JOptionPane.showMessageDialog(this, "Block reps can only recant their own tasks.", "Not allowed",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
             Task_Manager tm = window.getTaskManager();
             DatabaseManager db = window.getDatabase();
             tm.removeTask(task);
@@ -497,6 +505,21 @@ public class ResidentPanel extends JPanel {
         dlg.setMinimumSize(new Dimension(400, 200));
         dlg.setLocationRelativeTo(this);
         dlg.setVisible(true);
+    }
+
+    private boolean isBlockRepUser() {
+        return "blockrep".equalsIgnoreCase(window.getCurrentUser().getRole());
+    }
+
+    private boolean canRecantTask(Task task) {
+        if (task.isComplete()) {
+            return false;
+        }
+        if (!isBlockRepUser()) {
+            return true;
+        }
+        return task.reporter != null
+                && task.reporter.getUsername().equals(window.getCurrentUser().getUsername());
     }
 
     // ── Notifications ─────────────────────────────────────────────────────────
