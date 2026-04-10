@@ -23,7 +23,12 @@ export interface CurrentUser {
   blockCode: string | null;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+const defaultApiBaseUrl =
+  typeof window === "undefined"
+    ? "http://localhost:8080"
+    : `http://${window.location.hostname}:8080`;
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || defaultApiBaseUrl;
 const AUTH_KEY = "gah.auth";
 
 interface StoredAuth {

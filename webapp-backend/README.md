@@ -28,6 +28,28 @@ Production-oriented Spring Boot backend scaffold that preserves the structure de
 3. Run:
    - `mvn spring-boot:run`
 
+### Quick dev run (no PostgreSQL)
+This backend is configured to use H2 in-memory by default for development.
+
+1. Run:
+   - `mvn spring-boot:run`
+2. API is available at:
+   - `http://localhost:8080/api/v1`
+
+### Run for another device on the same network
+1. Start backend on your main machine.
+2. Ensure Windows Firewall allows inbound TCP 8080.
+3. From another device, call:
+   - `http://<YOUR_MAIN_MACHINE_IP>:8080/api/v1/health`
+
+### CORS configuration for LAN/dev
+Allowed origin patterns are configurable with `GAH_CORS_ALLOWED_ORIGIN_PATTERNS`.
+
+Default patterns include localhost and private LAN ranges.
+
+Example override:
+- `GAH_CORS_ALLOWED_ORIGIN_PATTERNS=http://localhost:*,http://127.0.0.1:*,http://192.168.*:*,http://10.*:*,http://172.*:*`
+
 ## API base path
 - `/api/v1`
 
