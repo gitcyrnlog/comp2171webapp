@@ -8,15 +8,30 @@
     <h1>{{ mode === "login" ? "Welcome Back" : "Create Resident Access" }}</h1>
     <p class="subtitle">Diagram-aligned AuthService flow with secure token session.</p>
 
+    <div v-if="mode === 'login'" class="role-toggle">
+      <button :class="{ active: portal === 'resident' }" @click="portal = 'resident'">Resident Portal</button>
+      <button :class="{ active: portal === 'staff' }" @click="portal = 'staff'">Staff Portal</button>
+    </div>
+
     <form @submit.prevent="submit" class="stack">
+      <label v-if="mode === 'register'">
+        Username
+        <input v-model="username" required placeholder="e.g. harryson" />
+      </label>
+
       <label v-if="mode === 'register'">
         Full name
         <input v-model="fullName" required placeholder="e.g. Harry Son" />
       </label>
 
+      <label v-if="mode === 'login'">
+        Username
+        <input v-model="username" placeholder="Enter username" />
+      </label>
+
       <label>
         Email
-        <input v-model="email" type="email" required placeholder="your@email.com" />
+        <input v-model="email" type="email" :required="mode === 'register'" placeholder="your@email.com" />
       </label>
 
       <label>
@@ -52,10 +67,12 @@ import { ref } from "vue";
 import { login, register, saveAuth } from "../lib/api";
 
 const mode = ref<"login" | "register">("login");
+const username = ref("");
 const fullName = ref("");
 const email = ref("");
 const password = ref("");
 const role = ref<"RESIDENT" | "BLOCK_REPRESENTATIVE">("RESIDENT");
+const portal = ref<"resident" | "staff">("resident");
 const blockCode = ref("");
 const loading = ref(false);
 const error = ref("");
@@ -68,11 +85,25 @@ async function submit() {
 
   try {
     if (mode.value === "login") {
-      const auth = await login(email.value, password.value);
+      const auth = await login({
+        username: username.value || undefined,
+        email: email.value || undefined,
+        password: password.value,
+      });
       saveAuth(auth);
+
+      if (portal.value === "staff" && !["ADMIN", "MAINTENANCE_WORKER", "SECURITY_GUARD"].includes(auth.role)) {
+        throw new Error("This account does not have staff access");
+      }
+
+      if (portal.value === "resident" && ["ADMIN", "MAINTENANCE_WORKER", "SECURITY_GUARD"].includes(auth.role)) {
+        throw new Error("Please use Staff Portal for this account");
+      }
+
       success.value = `Logged in as ${auth.fullName} (${auth.role}). Redirecting...`;
     } else {
       const auth = await register({
+        username: username.value,
         fullName: fullName.value,
         email: email.value,
         password: password.value,
@@ -84,7 +115,11 @@ async function submit() {
     }
 
     setTimeout(() => {
-      window.location.href = "/";
+      if (mode.value === "login") {
+        window.location.href = portal.value === "staff" ? "/staff" : "/resident";
+      } else {
+        window.location.href = "/resident";
+      }
     }, 800);
   } catch (e: any) {
     error.value = e.message || "Authentication failed";
@@ -121,6 +156,24 @@ async function submit() {
 .subtitle {
   color: var(--ink-soft);
   margin-top: 0;
+}
+.role-toggle {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+.role-toggle button {
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  padding: 0.45rem 0.85rem;
+}
+.role-toggle button.active {
+  background: #0f766e;
+  color: #fff;
 }
 .stack {
   display: grid;

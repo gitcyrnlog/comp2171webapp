@@ -5,13 +5,21 @@ spring:
   application:
     name: gah-facilities-web-backend
   datasource:
-    url: ${GAH_DB_URL:jdbc:postgresql://localhost:5433/gah_facilities}
-    username: ${GAH_DB_USER:postgres}
-    password: ${GAH_DB_PASSWORD:postgres}
-    driver-class-name: org.postgresql.Driver
+    url: ${GAH_DB_URL:jdbc:h2:mem:gah_facilities;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_LOWER=TRUE}
+    username: ${GAH_DB_USER:sa}
+    password: ${GAH_DB_PASSWORD:}
+    driver-class-name: ${GAH_DB_DRIVER:org.h2.Driver}
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+      data-locations: classpath:data.sql
   flyway:
-    enabled: true
+    enabled: ${GAH_FLYWAY_ENABLED:false}
     locations: classpath:db/migration
+  h2:
+    console:
+      enabled: true
 
 security:
   jwt:

@@ -7,6 +7,7 @@ export type UserRole =
 
 export interface AuthResponse {
   userId: number;
+  username: string;
   fullName: string;
   email: string;
   role: UserRole;
@@ -15,6 +16,7 @@ export interface AuthResponse {
 
 export interface CurrentUser {
   userId: number;
+  username: string;
   fullName: string;
   email: string;
   role: UserRole;
@@ -27,6 +29,7 @@ const AUTH_KEY = "gah.auth";
 interface StoredAuth {
   token: string;
   role: UserRole;
+  username: string;
   fullName: string;
   email: string;
   userId: number;
@@ -77,6 +80,7 @@ export function saveAuth(auth: AuthResponse) {
   const value: StoredAuth = {
     token: auth.accessToken,
     role: auth.role,
+    username: auth.username,
     fullName: auth.fullName,
     email: auth.email,
     userId: auth.userId,
@@ -84,16 +88,17 @@ export function saveAuth(auth: AuthResponse) {
   window.localStorage.setItem(AUTH_KEY, JSON.stringify(value));
 }
 
-export async function login(email: string, password: string) {
+export async function login(payload: { username?: string; email?: string; password: string }) {
   const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
     method: "POST",
     headers: buildHeaders(false),
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify(payload),
   });
   return parseJson<AuthResponse>(response);
 }
 
 export async function register(payload: {
+  username: string;
   fullName: string;
   email: string;
   password: string;

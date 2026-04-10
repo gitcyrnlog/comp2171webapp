@@ -32,6 +32,22 @@
   </section>
 </template>
 
+<script setup lang="ts">
+import { onMounted } from "vue";
+import { getStoredAuth } from "../lib/api";
+
+onMounted(() => {
+  const auth = getStoredAuth();
+  if (!auth) {
+    window.location.href = "/login";
+    return;
+  }
+
+  const isStaff = ["ADMIN", "MAINTENANCE_WORKER", "SECURITY_GUARD"].includes(auth.role);
+  window.location.href = isStaff ? "/staff" : "/resident";
+});
+</script>
+
 <style scoped>
 .surface {
   border: 1px solid var(--line);

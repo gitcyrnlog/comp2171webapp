@@ -44,6 +44,20 @@ public class JdbcLaundryBookingRepository implements LaundryBookingRepository {
     }
 
     @Override
+    public boolean existsResidentOverlappingBooking(long residentId, LocalDate date, LocalTime startTime, LocalTime endTime) {
+        String sql = """
+                SELECT COUNT(*)
+                FROM laundry_bookings
+                WHERE resident_id = ?
+                  AND booking_date = ?
+                  AND status = 'BOOKED'
+                  AND (? < end_time AND ? > start_time)
+                """;
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, residentId, date, startTime, endTime);
+        return count != null && count > 0;
+    }
+
+    @Override
     public LaundryBooking create(long residentId, LocalDate date, LocalTime startTime, LocalTime endTime, String machineNo) {
         String insert = """
                 INSERT INTO laundry_bookings(resident_id, booking_date, start_time, end_time, machine_no, status)

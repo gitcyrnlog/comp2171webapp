@@ -6,14 +6,13 @@
         GAH Facilities Web
       </a>
 
-      <nav class="nav-links">
-        <a href="/resident">Resident Portal</a>
-        <a href="/staff">Staff Console</a>
-        <a href="/login">Auth</a>
+      <nav v-if="auth" class="nav-links">
+        <a href="/resident">Resident Tab</a>
+        <a href="/staff">Staff Tab</a>
       </nav>
 
       <div class="session-box">
-        <span v-if="auth">{{ auth.fullName }} · {{ auth.role }}</span>
+        <span v-if="auth">{{ auth.username }} · {{ auth.role }}</span>
         <span v-else>Guest Session</span>
         <button v-if="auth" @click="logout">Log out</button>
       </div>
@@ -26,7 +25,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { clearAuth, getStoredAuth } from "./lib/api";
 
 const auth = computed(() => getStoredAuth());
@@ -35,6 +34,13 @@ function logout() {
   clearAuth();
   window.location.href = "/login";
 }
+
+onMounted(() => {
+  const path = window.location.pathname;
+  if (!auth.value && path !== "/login") {
+    window.location.href = "/login";
+  }
+});
 </script>
 
 <style>

@@ -9,6 +9,8 @@ import com.gah.facilities.residents.repository.UserAccountRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class AuthService {
     private final UserAccountRepository userAccountRepository;
@@ -22,8 +24,19 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        UserAccount user = userAccountRepository.findByEmail(request.email())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
+        if ((request.username() == null || request.username().isBlank())
+                && (request.email() == null || request.email().isBlank())) {
+            throw new IllegalArgumentException("Provide a username or email");
+        }
+        if (request.password() == null || request.password().isBlank()) {
+            throw new IllegalArgumentException("Password is required");
+        }
+
+        Optional<UserAccount> maybeUser = (request.username() != null && !request.username().isBlank())
+                ? userAccountRepository.findByUsername(request.username())
+                : userAccountRepository.findByEmail(request.email());
+
+        UserAccount user = maybeUser.orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
 
         if (!user.isActive() || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
             throw new IllegalArgumentException("Invalid credentials");
@@ -31,6 +44,7 @@ public class AuthService {
 
         return new AuthResponse(
                 user.getId(),
+            user.getUsername(),
                 user.getFullName(),
                 user.getEmail(),
                 user.getRole(),
@@ -43,11 +57,20 @@ public class AuthService {
             throw new IllegalArgumentException("Only resident and block representative self-registration is allowed");
         }
 
+        if (request.username() == null || request.username().isBlank()) {
+            throw new IllegalArgumentException("Username is required");
+        }
+
+        userAccountRepository.findByUsername(request.username()).ifPresent(existing -> {
+            throw new IllegalArgumentException("Username already registered");
+        });
+
         userAccountRepository.findByEmail(request.email()).ifPresent(existing -> {
             throw new IllegalArgumentException("Email already registered");
         });
 
         UserAccount created = userAccountRepository.create(
+                request.username(),
                 request.fullName(),
                 request.email(),
                 passwordEncoder.encode(request.password()),
@@ -57,6 +80,7 @@ public class AuthService {
 
         return new AuthResponse(
                 created.getId(),
+            created.getUsername(),
                 created.getFullName(),
                 created.getEmail(),
                 created.getRole(),

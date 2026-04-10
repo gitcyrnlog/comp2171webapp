@@ -2,6 +2,7 @@ package com.gah.facilities.common.domain.user;
 
 public class UserAccount {
     private final long id;
+    private final String username;
     private final String fullName;
     private final String email;
     private final String passwordHash;
@@ -9,8 +10,9 @@ public class UserAccount {
     private final String blockCode;
     private final boolean active;
 
-    public UserAccount(long id, String fullName, String email, String passwordHash, UserRole role, String blockCode, boolean active) {
+    public UserAccount(long id, String username, String fullName, String email, String passwordHash, UserRole role, String blockCode, boolean active) {
         this.id = id;
+        this.username = username;
         this.fullName = fullName;
         this.email = email;
         this.passwordHash = passwordHash;
@@ -21,6 +23,10 @@ public class UserAccount {
 
     public long getId() {
         return id;
+    }
+
+    public String getUsername() {
+        return username;
     }
 
     public String getFullName() {

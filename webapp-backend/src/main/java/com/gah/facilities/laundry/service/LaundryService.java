@@ -27,12 +27,20 @@ public class LaundryService {
     public LaundryBooking book(long residentId, BookLaundryRequest request) {
         validateTimes(request.startTime(), request.endTime());
 
+        if (bookingRepository.existsResidentOverlappingBooking(
+                residentId,
+                request.bookingDate(),
+                request.startTime(),
+                request.endTime())) {
+            throw new IllegalArgumentException("You already have an appointment during this time window");
+        }
+
         if (!isAvailable(request.bookingDate(), request.startTime(), request.endTime(), request.machineNo())) {
             throw new IllegalArgumentException("Selected slot is unavailable for the machine");
         }
 
         LaundryBooking booking = bookingRepository.create(
-            residentId,
+                residentId,
                 request.bookingDate(),
                 request.startTime(),
                 request.endTime(),

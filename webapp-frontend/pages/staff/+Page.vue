@@ -42,9 +42,14 @@ const lookupError = ref("");
 
 onMounted(async () => {
   try {
-    profile.value = await me();
+    const current = await me();
+    profile.value = current;
+    if (!["ADMIN", "MAINTENANCE_WORKER", "SECURITY_GUARD"].includes(current.role)) {
+      window.location.href = "/resident";
+    }
   } catch (e: any) {
     profileError.value = e.message || "Unable to verify session";
+    window.location.href = "/login";
   }
 });
 

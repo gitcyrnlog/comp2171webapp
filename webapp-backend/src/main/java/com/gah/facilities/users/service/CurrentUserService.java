@@ -27,6 +27,7 @@ public class CurrentUserService {
 
         return new CurrentUserResponse(
                 account.getId(),
+            account.getUsername(),
                 account.getFullName(),
                 account.getEmail(),
                 account.getRole(),
