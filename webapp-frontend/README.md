@@ -14,6 +14,10 @@ Vue + Vike frontend for the facilities system.
 3. Open in browser:
   - `http://localhost:5173`
 
+## One-command run from repository root
+- Windows: `./run-dev.ps1`
+- macOS/Linux: `./run-dev.sh`
+
 ## Run from another device (same Wi-Fi/LAN)
 1. Start backend on your main machine (port 8080).
 2. Start frontend on your main machine with host binding:

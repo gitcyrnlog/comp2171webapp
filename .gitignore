@@ -27,6 +27,7 @@ bin/
 *.class
 target/
 webapp-backend/.env
+apache-maven-*/
 
 ### Mac OS ###
 .DS_Store

@@ -26,13 +26,15 @@ Production-oriented Spring Boot backend scaffold that preserves the structure de
    - `GAH_JWT_SECRET`
 2. Start PostgreSQL.
 3. Run:
-   - `mvn spring-boot:run`
+   - Windows: `./mvnw.cmd spring-boot:run`
+   - macOS/Linux: `./mvnw spring-boot:run`
 
 ### Quick dev run (no PostgreSQL)
 This backend is configured to use H2 in-memory by default for development.
 
 1. Run:
-   - `mvn spring-boot:run`
+   - Windows: `./mvnw.cmd spring-boot:run`
+   - macOS/Linux: `./mvnw spring-boot:run`
 2. API is available at:
    - `http://localhost:8080/api/v1`
 
