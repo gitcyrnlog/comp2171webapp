@@ -25,6 +25,8 @@ bin/
 ### VS Code ###
 .vscode/
 *.class
+target/
+webapp-backend/.env
 
 ### Mac OS ###
 .DS_Store

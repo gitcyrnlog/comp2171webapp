@@ -1,0 +1,23 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gah-facilities-web-backend
+  datasource:
+    url: ${GAH_DB_URL:jdbc:postgresql://localhost:5433/gah_facilities}
+    username: ${GAH_DB_USER:postgres}
+    password: ${GAH_DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+security:
+  jwt:
+    secret: ${GAH_JWT_SECRET:change-this-in-production-32-bytes-minimum}
+
+logging:
+  level:
+    root: INFO
+    com.gah.facilities: INFO
